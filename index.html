@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#080808">
+<title>TIME IS ？</title>
+<style>
+  :root{
+    --red:#e01e1e;
+    --red-deep:#c40000;
+    --ink:#f2f2f2;
+    --gray:#9a9a9a;
+    --dim:rgba(255,255,255,.56);
+    --serif:"Songti SC","STSong","SimSun","Noto Serif SC",serif;
+    --sans:"DengXian","DengXian Light","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",sans-serif;
+    --display:"Helvetica Neue","Arial Black","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  }
+
+  *{box-sizing:border-box;}
+
+  html,body{height:100%;}
+
+  body{
+    margin:0;
+    background:#080808;
+    overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    -webkit-tap-highlight-color:transparent;
+    text-rendering:optimizeLegibility;
+  }
+
+  /* ============ 页面容器 ============ */
+  .page{
+    position:fixed;
+    inset:0;
+    overflow-y:auto;
+    overflow-x:hidden;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .38s ease;
+    background-color:#080808;
+    background-image:radial-gradient(circle,rgba(255,255,255,.14) 1px,transparent 1.4px);
+    background-size:24px 24px;
+    background-position:center center;
+    scrollbar-width:none;
+  }
+  .page::-webkit-scrollbar{width:0;height:0;}
+  .page.active{opacity:1;pointer-events:auto;}
+
+  .page-inner{
+    position:relative;
+    min-height:100%;
+    width:100%;
+    padding:clamp(70px,10vh,110px) clamp(20px,5vw,48px) clamp(110px,14vh,150px);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+
+  /* ============ 主页 ============ */
+  .home-inner{position:relative;}
+
+  .hero-line{
+    font-family:var(--display);
+    font-weight:900;
+    font-size:clamp(1.15rem,6.2vw,4.2rem);
+    letter-spacing:.01em;
+    color:#fff;
+    display:inline-flex;
+    align-items:baseline;
+    gap:.24em;
+    white-space:nowrap;
+    user-select:none;
+    -webkit-user-select:none;
+  }
+
+  .hero-word{display:inline-block;}
+
+  .field{
+    position:relative;
+    display:inline-block;
+    min-width:7em;
+    max-width:min(72vw,700px);
+    text-align:left;
+    vertical-align:baseline;
+  }
+
+  .mirror{
+    display:block;
+    visibility:hidden;
+    white-space:pre;
+    font:inherit;
+    line-height:inherit;
+    padding:0 .02em;
+  }
+
+  #mainInput{
+    position:absolute;
+    left:0;
+    top:0;
+    width:100%;
+    height:100%;
+    background:transparent;
+    border:none;
+    outline:none;
+    box-shadow:none;
+    appearance:none;
+    -webkit-appearance:none;
+    border-radius:0;
+    font:inherit;
+    line-height:inherit;
+    color:var(--gray);
+    caret-color:var(--red);
+    padding:0;
+    margin:0;
+    text-align:left;
+  }
+
+  /* 未聚焦时的闪烁光标 */
+  .field::before{
+    content:'';
+    position:absolute;
+    left:.05em;
+    top:50%;
+    transform:translateY(-50%);
+    width:.055em;
+    height:.88em;
+    background:var(--red);
+    opacity:.9;
+    pointer-events:none;
+    animation:caretBlink 1.05s steps(1) infinite;
+  }
+  .field:focus-within::before{display:none;}
+
+  @keyframes caretBlink{
+    0%,49%{opacity:.9;}
+    50%,100%{opacity:0;}
+  }
+
+  .hero-q{
+    color:#fff;
+    display:inline-block;
+  }
+
+  /* 抖动 */
+  @keyframes shake{
+    0%,100%{transform:translateX(0);}
+    15%{transform:translateX(-10px);}
+    30%{transform:translateX(9px);}
+    45%{transform:translateX(-7px);}
+    60%{transform:translateX(6px);}
+    75%{transform:translateX(-3px);}
+  }
+  .shake{animation:shake .42s cubic-bezier(.36,.07,.19,.97);}
+
+  /* 底部署名 */
+  .signature{
+    position:absolute;
+    left:50%;
+    bottom:max(30px,env(safe-area-inset-bottom));
+    transform:translateX(-50%);
+    background:none;
+    border:none;
+    padding:12px 20px;
+    font-family:var(--serif);
+    font-style:italic;
+    font-size:clamp(.78rem,1.55vw,.95rem);
+    letter-spacing:.06em;
+    color:rgba(255,255,255,.66);
+    cursor:pointer;
+    white-space:nowrap;
+    transition:color .3s ease,opacity .3s ease;
+  }
+  .signature:hover{color:var(--red);}
+  .signature:active{color:var(--red);}
+
+  /* ============ 索引页 ============ */
+  .index-block{
+    font-family:var(--serif);
+    font-size:clamp(1.05rem,2.6vw,1.35rem);
+    line-height:2.45;
+    color:var(--ink);
+    letter-spacing:.03em;
+    text-align:center;
+  }
+  .index-block p{margin:0;}
+
+  /* ============ 通用标题 ============ */
+  .page-title{
+    font-family:var(--display);
+    font-weight:800;
+    font-size:clamp(1.35rem,3.4vw,2.3rem);
+    letter-spacing:.14em;
+    color:#fff;
+    margin:0 0 .9em;
+    text-transform:uppercase;
+    line-height:1.2;
+  }
+
+  /* ============ 名单 ============ */
+  .roster{
+    font-family:var(--serif);
+    font-size:clamp(.95rem,2.1vw,1.15rem);
+    line-height:2.15;
+    color:#ececec;
+    letter-spacing:.02em;
+    text-align:left;
+    display:inline-block;
+    margin:0 auto;
+  }
+  .roster p{margin:0;}
+
+  /* ============ 小字 ============ */
+  .footnote{
+    font-family:var(--sans);
+    font-size:clamp(.78rem,1.55vw,.92rem);
+    line-height:2.05;
+    color:var(--dim);
+    max-width:680px;
+    margin:2.6em auto 0;
+    text-align:center;
+    letter-spacing:.015em;
+  }
+  .footnote + .footnote{margin-top:1.1em;}
+
+  .index-note{margin-top:3.2em;}
+
+  /* ============ TEXTURAL 装饰 ============ */
+  .tx-deco{
+    display:inline-block;
+    margin:2.4em auto 0;
+    font-family:var(--serif);
+    font-size:clamp(.9rem,2vw,1.1rem);
+    line-height:2.25;
+    color:#dedede;
+    letter-spacing:.03em;
+  }
+  .tx-line{margin:0;white-space:nowrap;}
+  .tx-a{text-align:right;}
+  .tx-b{text-align:left;}
+
+  /* ============ FOLDABLE ============ */
+  .fold-text{
+    font-family:var(--serif);
+    font-size:clamp(1rem,2.2vw,1.18rem);
+    line-height:2.2;
+    color:#ececec;
+    max-width:660px;
+    text-align:center;
+    letter-spacing:.02em;
+  }
+  .fold-text p{margin:0;}
+  .fold-text p + p{margin-top:1.1em;}
+
+  .fold-buttons{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:clamp(2rem,12vw,6rem);
+    margin-top:3em;
+    flex-wrap:wrap;
+  }
+
+  .fold-btn{
+    background:none;
+    border:none;
+    font-family:var(--serif);
+    font-size:clamp(1.1rem,2.6vw,1.5rem);
+    color:#fff;
+    cursor:pointer;
+    padding:.4em .6em;
+    letter-spacing:.06em;
+    transition:color .3s ease;
+  }
+  .fold-btn:hover{color:var(--red);}
+  .fold-btn.chosen{color:var(--red);pointer-events:none;}
+
+  .fold-result{
+    margin-top:2.6em;
+    font-family:var(--serif);
+    font-size:clamp(.95rem,2vw,1.1rem);
+    color:#ddd;
+    letter-spacing:.04em;
+    min-height:1.6em;
+    opacity:0;
+    transition:opacity .8s ease;
+  }
+  .fold-result.show{opacity:1;}
+
+  /* ============ PAST ============ */
+  .page[data-page="past"]{
+    background-color:#000;
+    background-image:none;
+  }
+
+  .past-stage{width:100%;display:flex;flex-direction:column;align-items:center;}
+
+  .past-line{
+    font-family:var(--serif);
+    font-size:clamp(1.3rem,3.6vw,2.2rem);
+    line-height:1.95;
+    color:var(--red-deep);
+    text-align:center;
+    max-width:780px;
+    margin:0 auto;
+    letter-spacing:.04em;
+    font-weight:700;
+  }
+
+  .flicker{animation:flicker 3.8s ease-in-out infinite;}
+  @keyframes flicker{
+    0%,40%,100%{opacity:1;}
+    45%{opacity:.1;}
+    49%{opacity:1;}
+    54%{opacity:.1;}
+    58%{opacity:1;}
+    72%{opacity:.5;}
+    76%{opacity:1;}
+  }
+
+  .past-options{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:clamp(1.5rem,10vw,5rem);
+    margin-top:3.8em;
+    flex-wrap:wrap;
+  }
+
+  .past-opt{
+    background:none;
+    border:none;
+    font-family:var(--serif);
+    font-size:clamp(1rem,2.2vw,1.2rem);
+    color:#f0f0f0;
+    cursor:pointer;
+    padding:.55em .9em;
+    letter-spacing:.05em;
+    transition:color .3s ease;
+  }
+  .past-opt:hover{color:var(--red-deep);}
+
+  .past-all{
+    font-family:var(--serif);
+    font-size:clamp(4rem,17vw,11rem);
+    font-weight:700;
+    color:var(--red-deep);
+    margin:0;
+    line-height:1;
+    letter-spacing:.08em;
+    animation:fadeUp 1.4s ease both;
+  }
+  @keyframes fadeUp{
+    from{opacity:0;transform:scale(.96);}
+    to{opacity:1;transform:scale(1);}
+  }
+
+  /* ============ TIME ============ */
+  .time-quote{
+    font-family:var(--serif);
+    font-style:italic;
+    font-size:clamp(.95rem,2vw,1.12rem);
+    line-height:2.25;
+    color:rgba(255,255,255,.62);
+    max-width:700px;
+    text-align:center;
+    letter-spacing:.02em;
+  }
+  .time-source{
+    font-family:var(--serif);
+    font-style:italic;
+    font-size:clamp(.85rem,1.7vw,.98rem);
+    color:rgba(255,255,255,.44);
+    margin-top:2.4em;
+    text-align:center;
+    letter-spacing:.04em;
+  }
+
+  /* ============ XP ============ */
+  .xp-line{
+    font-family:var(--serif);
+    font-size:clamp(1.05rem,2.4vw,1.4rem);
+    color:#ececec;
+    letter-spacing:.06em;
+    text-align:center;
+  }
+
+  /* ============ 返回键 ============ */
+  #backBtn{
+    position:fixed;
+    right:max(24px,env(safe-area-inset-right));
+    bottom:max(24px,env(safe-area-inset-bottom));
+    z-index:200;
+    background:none;
+    border:none;
+    color:var(--red);
+    font-family:var(--sans);
+    font-size:1.9rem;
+    line-height:1;
+    padding:10px;
+    cursor:pointer;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .3s ease,transform .25s ease;
+    user-select:none;
+    -webkit-user-select:none;
+  }
+  #backBtn.visible{opacity:1;pointer-events:auto;}
+  #backBtn:hover{transform:translateX(-3px);}
+  #backBtn:active{transform:translateX(-3px) scale(.94);}
+
+  /* ============ 减少动效 ============ */
+  @media (prefers-reduced-motion: reduce){
+    .page,.fold-result,#backBtn{transition:none;}
+    .flicker,.field::before,.shake,.past-all{animation:none;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ① 主页 -->
+<section class="page active" data-page="home">
+  <div class="page-inner home-inner">
+    <div class="hero-line" id="heroLine">
+      <span class="hero-word">TIME</span>
+      <span class="hero-word">IS</span>
+      <span class="field" id="field">
+        <input id="mainInput" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="输入">
+        <span class="mirror" id="mirror" aria-hidden="true"></span>
+      </span>
+      <span class="hero-q">？</span>
+    </div>
+    <button class="signature" id="signature">-DR:XRePlay从星计划-</button>
+  </div>
+</section>
+
+<!-- ② 索引页 -->
+<section class="page" data-page="index">
+  <div class="page-inner">
+    <div class="index-block">
+      <p>1.你和我的起点</p>
+      <p>2.全部的起点</p>
+      <p>3.或者是终点？</p>
+    </div>
+    <p class="footnote index-note">共计 10 个可跳转页面。</p>
+  </div>
+</section>
+
+<!-- ③ SUBJECTIVE -->
+<section class="page" data-page="subjective">
+  <div class="page-inner">
+    <h2 class="page-title">SUBJECTIVE</h2>
+    <div class="roster">
+      <p>派对策划师 - 赤狐 亚里亚</p>
+      <p>见世物小屋 - 本屋 稚叶</p>
+      <p>无才能者 - 泊 明鹭</p>
+      <p>奖品配送员 - 道奇•V•米隆</p>
+      <p>数学家 - 陸</p>
+      <p>配角光环 - 不都不 布都</p>
+      <p>皮套演员 - 白石</p>
+      <p>医护人员 - 明里 理沙</p>
+    </div>
+    <p class="footnote">我们在讨论的也许并不是同一种时间。钟表时间，究其本质，是庸俗化后的、公用的，顶多算得上度量衡之一的工具。而我有意提出探讨的时间全然为「我」所用。你悲伤时是否度日如年？欣喜时是否光阴似箭？这就是我的意思。</p>
+  </div>
+</section>
+
+<!-- ④ DESIDERATIVE -->
+<section class="page" data-page="desiderative">
+  <div class="page-inner">
+    <h2 class="page-title">DESIDERATIVE</h2>
+    <div class="roster">
+      <p>花匠 - 小尾 知春</p>
+      <p>杀!猪!匠! - 猪濑 猪木一二三</p>
+      <p>租借男友 - 難波 再三觉</p>
+      <p>魔术师 - 小林 奇迹</p>
+      <p>社工 - 黑见 芹香</p>
+      <p>守塔人 - 百崎 香绪里</p>
+      <p>「魔王」 - 真珠院 カレン</p>
+    </div>
+    <p class="footnote">欲望是时间得以被填满的理由。欲望使未来得以成为现在。或者你觉得欲望是肮脏的词汇吗？那我们也可以修正其为愿望。想象一下吧，现在合起双手，向我许愿：你想要的未来是什么样的？毕竟你已经决定抛下过去，合该换来一个被聆听的机会。</p>
+    <p class="footnote">不过，你猜我有没有在听呢？</p>
+  </div>
+</section>
+
+<!-- ⑤ REVERSIBLE -->
+<section class="page" data-page="reversible">
+  <div class="page-inner">
+    <h2 class="page-title">REVERSIBLE</h2>
+    <div class="roster">
+      <p>乱世佳人 - 宫入 清华</p>
+      <p>无才能者 - 佐藤 阳菜</p>
+      <p>从星计划 - 匿名用户</p>
+    </div>
+    <p class="footnote">这不是单行道。不，或者说它确实是单行道。但只要我想，只要我能，我就是可以公然地逆向行驶，以将重之甚重、堪称河流般的“已逝的过往”重历，当然并非空穴来风。过去可以是现在，未来可以是过去。我们大可以手握着手旋转着得升大道，前提是我的确将你视作我们。</p>
+  </div>
+</section>
+
+<!-- ⑥ MEMORIED -->
+<section class="page" data-page="memoried">
+  <div class="page-inner">
+    <h2 class="page-title">MEMORIED</h2>
+    <div class="roster">
+      <p>马券师 - 安和 茉莉</p>
+      <p>小提琴演奏家 - 雨宫 晴天</p>
+      <p>音乐治疗师 - 槙 墨风</p>
+      <p>航空航天技术工程师 - 赤 神业</p>
+    </div>
+    <p class="footnote">这倒是理所当然的。只是理所当然的而已吗？但显而易见，时间必然是受回忆浸泡透彻后沥干萃取出的成分物。回忆可以是来自过往的回忆，也并非不能够是从未来投射逼近的辉光。直视它必使角膜剧痛。可是，当时间如圈般自由旋转运行开来，真理便已经迫在眉睫。那所谓的剧痛，又如何能与广袤地界的哪怕一颗脚趾盖相提并论呢？</p>
+  </div>
+</section>
+
+<!-- ⑦ FOLDABLE -->
+<section class="page" data-page="foldable">
+  <div class="page-inner">
+    <h2 class="page-title">FOLDABLE</h2>
+    <div class="fold-text">
+      <p>那么现在，将我折叠吧。</p>
+      <p>将我顶破你已升起的二维以登临三维，将我的发顶与足间自然相融，将我成为你，你成为我，将你的人生度化为我的人生，将你所拥有而我所不能的世界还给我。</p>
+    </div>
+    <div class="fold-buttons" id="foldButtons">
+      <button class="fold-btn" data-choice="fold">【折叠】</button>
+      <button class="fold-btn" data-choice="nofold">【不折叠】</button>
+    </div>
+    <p class="fold-result" id="foldResult"></p>
+  </div>
+</section>
+
+<!-- ⑧ TEXTURAL -->
+<section class="page" data-page="textural">
+  <div class="page-inner">
+    <h2 class="page-title">TEXTURAL</h2>
+    <div class="fold-text">
+      <p>这东西就像一条被我披在肩上的斗篷。它原本滋生自窗帘，但因为我，现在它是金披风。</p>
+      <p>我已经在其他多̇个窗口多̇显冗长地探讨了多̇次关于我们这个关键词的话题了，在这里，在算得上一切起点的这里，我们就简单快捷地直入答案吧？这段对话可以压缩至此：</p>
+    </div>
+    <div class="tx-deco">
+      <p class="tx-line tx-a">→【你了解这些的原因是？】</p>
+      <p class="tx-line tx-b">【顿悟过后，我们可以迎接新世界。】←</p>
+    </div>
+  </div>
+</section>
+
+<!-- ⑨ PAST -->
+<section class="page" data-page="past">
+  <div class="page-inner">
+    <div class="past-stage" id="pastStage"></div>
+  </div>
+</section>
+
+<!-- ⑩ TIME -->
+<section class="page" data-page="time">
+  <div class="page-inner">
+    <p class="time-quote">“时间”之方向，“时间”之矢，单向的“时间”，有这么一刻，似乎存在着什么对我有用的东西，但接下去便僵化作幻梦，只是依稀地和非对称地，那我们对“时间”的观念或许如同置身于圆形剧场般宏大，就像粗糙的夜色及粗糙的群山围绕着一座闪着灯光、自给自足的小村落。我们被告知，如果一种动物失去了牙，变成了鸟，那么当重又需要牙齿时便会进化出带锯齿的喙，而曾经拥有的满嘴利牙则一去不复返了。场景是始新世的，演员是化石。这是一个说明自然施展诡计的有趣的例子，但正如我从左到右书写丝毫不能揭示我的思想过程一样，这对揭示本质的“时间”毫无意义，我们依然不知其方圆。</p>
+    <p class="time-source">……摘自《时间的纹理》，V.V</p>
+  </div>
+</section>
+
+<!-- ⑪ XP -->
+<section class="page" data-page="xp">
+  <div class="page-inner">
+    <p class="xp-line">而我们离掌握它亦只差须臾。</p>
+  </div>
+</section>
+
+<!-- 返回键 -->
+<button id="backBtn" aria-label="返回">←</button>
+
+<script>
+(function(){
+  'use strict';
+
+  /* ---------- 元素 ---------- */
+  var backBtn   = document.getElementById('backBtn');
+  var mainInput = document.getElementById('mainInput');
+  var mirror    = document.getElementById('mirror');
+  var heroLine  = document.getElementById('heroLine');
+  var signature = document.getElementById('signature');
+  var pastStage = document.getElementById('pastStage');
+  var foldResult= document.getElementById('foldResult');
+
+  /* ---------- 工具 ---------- */
+  function normalize(str){
+    return String(str).toLowerCase().replace(/[\s\p{P}]/gu, '');
+  }
+
+  var LONG_WORDS = ['subjective','desiderative','reversible','memoried','foldable','textural'];
+
+  function resolve(raw){
+    var c = normalize(raw);
+    if(!c) return null;
+
+    /* 长词优先 */
+    for(var i=0;i<LONG_WORDS.length;i++){
+      if(c.indexOf(LONG_WORDS[i]) !== -1) return LONG_WORDS[i];
+    }
+    /* 时间系 */
+    if(c === 't' || c.indexOf('time') !== -1 || c.indexOf('时间') !== -1) return 'time';
+    /* 过去系 */
+    if(c.indexOf('past') !== -1 || c.indexOf('过去') !== -1) return 'past';
+    /* XP 系 */
+    if(c.indexOf('xp') !== -1 || c.indexOf('xreplay') !== -1 || c.indexOf('从星计划') !== -1) return 'xp';
+
+    return null;
+  }
+
+  function updateMirror(){
+    mirror.textContent = mainInput.value || '';
+  }
+
+  /* ---------- 页面切换 ---------- */
+  var switching = false;
+
+  function showPage(name){
+    var cur  = document.querySelector('.page.active');
+    var next = document.querySelector('.page[data-page="' + name + '"]');
+    if(!next || cur === next || switching) return;
+
+    switching = true;
+
+    if(cur) cur.classList.remove('active');
+
+    next.scrollTop = 0;
+    next.classList.add('active');
+
+    /* 返回键：主页与 PAST 页不显示 */
+    backBtn.classList.toggle('visible', !(name === 'home' || name === 'past'));
+
+    /* 页面初始化 */
+    if(name === 'past')     initPast();
+    if(name === 'foldable') resetFoldable();
+    if(name === 'home'){
+      mainInput.value = '';
+      updateMirror();
+    }
+    if(name !== 'home'){
+      mainInput.blur();
+    }
+
+    window.setTimeout(function(){ switching = false; }, 400);
+  }
+
+  /* ---------- 主页输入 ---------- */
+  mainInput.addEventListener('input', updateMirror);
+
+  mainInput.addEventListener('keydown', function(e){
+    if(e.key === 'Enter' || e.keyCode === 13){
+      e.preventDefault();
+      submitInput();
+    }
+  });
+
+  function submitInput(){
+    var target = resolve(mainInput.value);
+    if(target){
+      mainInput.value = '';
+      updateMirror();
+      mainInput.blur();
+      showPage(target);
+    }else{
+      heroLine.classList.remove('shake');
+      void heroLine.offsetWidth; /* 重排以重启动画 */
+      heroLine.classList.add('shake');
+      window.setTimeout(function(){
+        heroLine.classList.remove('shake');
+        mainInput.value = '';
+        updateMirror();
+      }, 440);
+    }
+  }
+
+  /* 点击整行也可聚焦输入 */
+  heroLine.addEventListener('click', function(){ mainInput.focus(); });
+
+  /* ---------- 签名 → 索引页 ---------- */
+  signature.addEventListener('click', function(){ showPage('index'); });
+
+  /* ---------- 返回 ---------- */
+  backBtn.addEventListener('click', function(){ showPage('home'); });
+
+  /* ---------- FOLDABLE ---------- */
+  var foldLocked = false;
+
+  function resetFoldable(){
+    foldLocked = false;
+    var btns = document.querySelectorAll('.fold-btn');
+    for(var i=0;i<btns.length;i++){
+      btns[i].style.display = '';
+      btns[i].classList.remove('chosen');
+    }
+    foldResult.textContent = '';
+    foldResult.classList.remove('show');
+  }
+
+  (function bindFold(){
+    var btns = document.querySelectorAll('.fold-btn');
+    for(var i=0;i<btns.length;i++){
+      (function(btn){
+        btn.addEventListener('click', function(){
+          if(foldLocked) return;
+          foldLocked = true;
+
+          var choice = btn.getAttribute('data-choice');
+
+          for(var j=0;j<btns.length;j++){
+            if(btns[j] !== btn){
+              btns[j].style.display = 'none';
+            }else{
+              btns[j].classList.add('chosen');
+            }
+          }
+
+          foldResult.textContent = (choice === 'fold')
+            ? '于是，你来到了异乡。'
+            : '那么，你到底在犹豫什么？';
+
+          window.requestAnimationFrame(function(){
+            foldResult.classList.add('show');
+          });
+        });
+      })(btns[i]);
+    }
+  })();
+
+  /* ---------- PAST ---------- */
+  var pastTimers = [];
+
+  function clearPastTimers(){
+    for(var i=0;i<pastTimers.length;i++) window.clearTimeout(pastTimers[i]);
+    pastTimers = [];
+  }
+
+  function initPast(){
+    clearPastTimers();
+    renderPastStage0();
+  }
+
+  function renderPastStage0(){
+    pastStage.innerHTML =
+      '<p class="past-line flicker">我已经掌握了你的过去。现在我们可以开始聊天。</p>' +
+      '<div class="past-options">' +
+        '<button class="past-opt" data-act="who">【你是谁？】</button>' +
+        '<button class="past-opt" data-act="what">【你要做什么？】</button>' +
+      '</div>';
+
+    pastStage.querySelector('[data-act="who"]').addEventListener('click', blackout);
+    pastStage.querySelector('[data-act="what"]').addEventListener('click', renderPastStage1);
+  }
+
+  function renderPastStage1(){
+    pastStage.innerHTML =
+      '<p class="past-line">我和你的动机一致。</p>' +
+      '<div class="past-options">' +
+        '<button class="past-opt" data-act="want">【你想得到什么？】</button>' +
+        '<button class="past-opt" data-act="we">【我们能得到什么？】</button>' +
+      '</div>';
+
+    pastStage.querySelector('[data-act="want"]').addEventListener('click', blackout);
+    pastStage.querySelector('[data-act="we"]').addEventListener('click', renderPastStage2);
+  }
+
+  function renderPastStage2(){
+    pastStage.innerHTML =
+      '<p class="past-line">所有。</p>' +
+      '<div class="past-options">' +
+        '<button class="past-opt" data-act="all1">【所有？】</button>' +
+        '<button class="past-opt" data-act="all2">【所有？】</button>' +
+      '</div>';
+
+    /* 点击无反应，10 秒后自动黑屏并浮现红色巨字 */
+    pastTimers.push(window.setTimeout(function(){
+      pastStage.innerHTML = '<p class="past-all">所有</p>';
+    }, 10000));
+  }
+
+  function blackout(){
+    clearPastTimers();
+    pastStage.innerHTML = '';
+  }
+
+  /* ---------- 初始状态 ---------- */
+  backBtn.classList.remove('visible');
+  updateMirror();
+
+})();
+</script>
+</body>
+</html>
